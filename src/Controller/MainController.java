@@ -14,10 +14,14 @@ import java.util.ResourceBundle;
 import javax.imageio.ImageIO;
 
 import Model.Pixel;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.CacheHint;
 import javafx.scene.control.Button;
 import javafx.scene.control.Slider;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelReader;
@@ -40,6 +44,16 @@ public class MainController implements Initializable{
 	private PixelWriter pixelWriter;
 	private WritableImage wimg;
 	
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		imageBefore.setCache(true);
+		imageBefore.setCacheHint(CacheHint.SPEED);
+		imageAfter.setCache(true);
+		imageAfter.setCacheHint(CacheHint.SPEED);
+		this.setBrightness();		
+			
+		}
+	
 	public void loadImage() throws IOException {
 		FileChooser fileChooser = new FileChooser();
 		File file = fileChooser.showOpenDialog(null);
@@ -50,6 +64,7 @@ public class MainController implements Initializable{
 		this.wimg = new WritableImage((int)img.getWidth(),(int)img.getHeight());
 		this.pixelWriter = wimg.getPixelWriter();
 		
+		
 		}
         
 	public void enableEdit () {
@@ -57,31 +72,13 @@ public class MainController implements Initializable{
 	}
 	
 	public void setBrightness() {
-		for(int readY=0;readY<img.getHeight();readY++) {
-           
-			for(int readX=0; readX<img.getWidth();readX++) {
-                Color color = pixelReader.getColor(readX,readY);
-                if(slider.getValue()>0) {
-                	color = color.deriveColor(0, 0, slider.getValue()/10, 0);
-                	pixelWriter.setColor(readX,readY,color);
-                	
-                }
-                if(slider.getValue()<0) {
-                    	
-                	color = color.deriveColor(1, 1, 1+slider.getValue()/10, 1);
-                    pixelWriter.setColor(readX,readY,color);
-                    
-                }
-            }
-        }
-		imageAfter.setImage(wimg);
+		slider.valueProperty().addListener(new ChangeListener<Number>() {
+			public void changed(ObservableValue<? extends Number> ov, Number old_val, Number new_val) {
+				ColorAdjust colorAdjust = new ColorAdjust();
+				colorAdjust.setBrightness(slider.getValue()/10);
+		    	imageAfter.setImage(img);
+		    	imageAfter.setEffect(colorAdjust);
+			}
+		});
 	}
-	
-	
-		@Override
-	public void initialize(URL location, ResourceBundle resources) {
-		
-			
-		}
-		
-	}
+}
